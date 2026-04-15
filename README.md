@@ -36,7 +36,7 @@ Navigate to Settings > System > Network and set the Home Assistant URL (Normally
 
 ## Getting Your Credentials
 #### Having your credentials is necessary to configure the integration, so get them before you install it.
-API credentials are now available directly in the Xthings Home app (formerly U-Home) version 3.5.5 or later. No need to submit a request through the developer portal.
+The new process is to activate your API credentials directly in the new XThings app.  From the menu, select your account (the top option with your name and email), then scroll to the bottom and select OpenAPI.  To activate you will be asked what type of role you have (e.g., Developer, Home User, etc), select Home User and the type of device you want to work on. This will automatically activate your account with API credentials and show you your `Client ID`, `Client Secret`, `Scope`, and `RedirectURI`.  
 
 1. Open the Xthings Home app and go to **My Account**
 2. Tap **OpenAPI**
