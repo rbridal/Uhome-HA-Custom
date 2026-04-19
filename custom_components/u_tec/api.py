@@ -150,42 +150,35 @@ class AsyncPushUpdateHandler:
         self, hass: HomeAssistant, webhook_id, request
     ) -> web.Response | None:
         """Handle webhook callback."""
+        _LOGGER.debug("Handling incoming push request")
+
         try:
             if request.method != "POST":
-                _LOGGER.error("Unsupported method: %s", request.method)
+                _LOGGER.warning("Unsupported method: %s", request.method)
                 return web.Response(status=405)
 
-            raw_body = await request.read()
-            _LOGGER.debug(
-                "Webhook hit received: method=%s headers=%s body=%s",
-                request.method,
-                dict(request.headers),
-                raw_body.decode("utf-8", errors="replace"),
-            )
-
             try:
-                data = json.loads(raw_body)
-            except Exception as json_err:  # noqa: BLE001
-                _LOGGER.error("Failed to parse webhook JSON: %s", json_err)
-                return web.Response(status=400)
+                data = await request.json()
+            except ValueError:
+                _LOGGER.warning("Invalid JSON payload")
+                return empty_okay_response(status=400)
 
-            # Validate the push secret via the Authorization header.
-            # U-Tec sends it as "Bearer <access_token>" in the HTTP header.
-            if self._push_secret is not None:
-                auth_header = request.headers.get("Authorization", "")
-                incoming_token = auth_header.removeprefix("Bearer ").strip()
-                if not incoming_token:
-                    _LOGGER.warning(
-                        "Webhook received with no Authorization header -- rejecting"
-                    )
-                    return web.Response(status=401)
-                if not secrets.compare_digest(incoming_token, self._push_secret):
-                    _LOGGER.error(
-                        "Webhook received with invalid Bearer token -- rejecting"
-                    )
-                    return web.Response(status=403)
+            if self._push_secret is None:
+                _LOGGER.error("HA side push secret not set")
+                return web.Response(status=500)
+        
+            auth_header = request.headers.get("Authorization", "")
+            incoming_token = auth_header.removeprefix("Bearer ").strip()
+        
+            if not incoming_token:
+                _LOGGER.warning("Webhook received with no authorization header")
+                return web.Response(status=401)
+            
+            if not secrets.compare_digest(incoming_token, self._push_secret):
+                _LOGGER.error("Webhook received with invalid Bearer token")
+                return web.Response(status=403)
 
-            _LOGGER.debug("Received webhook data: %s", data)
+            _LOGGER.debug("Push request authenticated successfully")
 
             if self.entry_id not in hass.data.get(DOMAIN, {}):
                 _LOGGER.error("Unknown entry_id in webhook: %s", self.entry_id)
@@ -197,8 +190,10 @@ class AsyncPushUpdateHandler:
         except UHomeError as err:
             _LOGGER.error("Error processing webhook: %s", err)
             return web.json_response({"success": False, "error": str(err)}, status=400)
+            
         except Exception as err:  # noqa: BLE001
             _LOGGER.exception("Unexpected error processing webhook: %s", err)
             return web.json_response({"success": False, "error": "Internal error"}, status=500)
+            
         else:
             return web.json_response({"success": True})
