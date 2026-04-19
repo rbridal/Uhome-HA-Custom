@@ -48,7 +48,7 @@ class AsyncPushUpdateHandler:
         """Initialize the webhook handler."""
         self.hass = hass
         self.entry_id = entry_id
-        self.webhook_id = f"{_PREFIX}{entry_id}"
+        self.webhook_id = f"{WEBHOOK_PREFIX}{entry_id}"
         self.webhook_url = None
         self._unregister_webhook = None
         self._cancel_reregister = None
