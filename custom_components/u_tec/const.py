@@ -13,7 +13,7 @@ DOMAIN = "u_tec"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_DISCOVERY_INTERVAL = "discovery_interval"
 
-DEFAULT_SCAN_INTERVAL = 10  # seconds
+DEFAULT_SCAN_INTERVAL = 30  # seconds
 DEFAULT_DISCOVERY_INTERVAL = 300  # seconds (5 minutes)
 
 OAUTH2_AUTHORIZE = "https://oauth.u-tec.com/authorize"
